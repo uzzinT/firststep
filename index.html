@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온실효과 탐구 워크북</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- dom-to-image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Pretendard', 'sans-serif'] },
+                    colors: {
+                        green: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Pretendard', sans-serif; }
+        #app-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #333; }
+        
+        /* The main 1200x800 scaled wrapper */
+        #scaler {
+            width: 1200px;
+            height: 800px;
+            background-color: #f0fdf4;
+            transform-origin: center center;
+            position: absolute;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-col;
+            overflow: hidden;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            border-radius: 1rem;
+        }
+        
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(220, 252, 231, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .glass-btn:hover:not(:disabled) { background: rgba(220, 252, 231, 0.9); transform: translateY(-2px); }
+        .glass-btn:active:not(:disabled) { transform: translateY(0); }
+        .glass-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .active-speed { background: #22c55e !important; color: white !important; border-color: #16a34a !important; }
+
+        input, textarea { outline: none; transition: border-color 0.2s; }
+        input:focus, textarea:focus { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(34, 197, 94, 0.4); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(34, 197, 94, 0.6); }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Fullscreen specific styling */
+        :fullscreen #app-container { background-color: #000; }
+        :fullscreen #scaler { border-radius: 0; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="scaler" class="flex flex-col text-gray-800">
+        
+        <!-- Header -->
+        <header class="h-16 shrink-0 flex items-center justify-between px-8 bg-white/80 backdrop-blur border-b border-gray-200 z-10 relative">
+            <h1 class="text-2xl font-bold text-green-600 flex items-center gap-2">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.8l7.5 15H4.5L12 5.8z"/></svg>
+                온실효과 탐구 워크북
+            </h1>
+            <div class="flex items-center gap-4">
+                <div id="progress-text" class="font-medium text-gray-600">준비 단계</div>
+                <div class="w-48 h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-green-500 transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 relative overflow-hidden flex flex-col">
+            
+            <!-- Stage 0: Intro -->
+            <section id="stage-0" class="absolute inset-0 flex flex-col items-center justify-center p-8 z-20 bg-green-50">
+                <div class="glass-panel p-12 max-w-2xl text-center fade-in">
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-6">지구의 온도는 어떻게 유지될까?</h2>
+                    <p class="text-lg text-gray-600 mb-10 leading-relaxed">
+                        이 워크북은 가상의 실험을 통해 지구의 복사 평형과 온실효과를 이해하기 위해 제작되었습니다.<br>
+                        각 단계의 실험을 주의 깊게 관찰하고, 탐구 질문에 답하며 원리를 깨우쳐 봅시다.
+                    </p>
+                    <button onclick="startApp()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-10 rounded-full shadow-lg text-xl transition-transform hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        탐구 시작하기 (전체화면)
+                    </button>
+                </div>
+            </section>
+
+            <!-- Layout for Stages 1~4 -->
+            <section id="main-layout" class="absolute inset-0 flex p-6 gap-6 hidden z-10 bg-green-50">
+                
+                <!-- Left Panel (Experiment - 60%) -->
+                <div class="flex-[6] glass-panel flex flex-col relative overflow-hidden" id="left-panel">
+                    <!-- Title -->
+                    <div class="h-14 border-b border-gray-200/50 flex items-center px-6 shrink-0 bg-white/40">
+                        <h3 id="experiment-title" class="text-xl font-bold text-gray-800">실험 영역</h3>
+                        <div id="status-indicator" class="ml-auto flex items-center gap-2 text-sm font-medium text-gray-500">
+                            <span class="w-2 h-2 rounded-full bg-red-500" id="status-dot"></span>
+                            <span id="status-text">대기 중</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Viewport for Canvas/SVG -->
+                    <div class="flex-1 relative w-full h-full p-4 flex flex-col" id="experiment-viewport">
+                        
+                        <!-- Stage 1 Visual -->
+                        <div id="vis-s1" class="hidden absolute inset-0 flex flex-col">
+                            <div class="flex-1 flex justify-center items-center relative">
+                                <!-- Heat Lamp -->
+                                <svg class="absolute top-4 w-24 h-24 transition-colors duration-300" id="lamp1" viewBox="0 0 100 100" fill="none">
+                                    <path d="M30 20 L70 20 L80 50 L20 50 Z" fill="#4B5563"/>
+                                    <circle cx="50" cy="50" r="15" fill="#e5e7eb" id="lamp1-bulb" class="transition-colors duration-300"/>
+                                    <path d="M45 0 L55 0 L55 20 L45 20 Z" fill="#374151"/>
+                                    <!-- Rays -->
+                                    <g id="lamp1-rays" opacity="0" class="transition-opacity duration-300">
+                                        <line x1="50" y1="70" x2="50" y2="90" stroke="#FBBF24" stroke-width="3" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="8" to="0" dur="0.5s" repeatCount="indefinite"/></line>
+                                        <line x1="30" y1="65" x2="20" y2="85" stroke="#FBBF24" stroke-width="3" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="8" to="0" dur="0.5s" repeatCount="indefinite"/></line>
+                                        <line x1="70" y1="65" x2="80" y2="85" stroke="#FBBF24" stroke-width="3" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="8" to="0" dur="0.5s" repeatCount="indefinite"/></line>
+                                    </g>
+                                </svg>
+                                <!-- Al Cup -->
+                                <svg class="absolute bottom-4 w-20 h-24" viewBox="0 0 100 100" fill="none">
+                                    <path d="M20 10 L80 10 L70 90 L30 90 Z" fill="#9CA3AF"/>
+                                    <ellipse cx="50" cy="10" rx="30" ry="8" fill="#D1D5DB"/>
+                                    <ellipse cx="50" cy="90" rx="20" ry="5" fill="#6B7280"/>
+                                    <text x="50" y="60" text-anchor="middle" fill="white" font-size="16" font-weight="bold" id="temp1-text">20.0℃</text>
+                                </svg>
+                            </div>
+                            <!-- Graph -->
+                            <div class="h-48 w-full relative mt-2 bg-white/50 rounded-lg p-2 border border-gray-200">
+                                <canvas id="chart1" class="w-full h-full"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 Visual -->
+                        <div id="vis-s2" class="hidden absolute inset-0 flex flex-col">
+                            <div class="flex-1 flex justify-center items-center relative">
+                                <!-- Heat Lamp Centered -->
+                                <svg class="absolute top-4 w-32 h-24" id="lamp2" viewBox="0 0 100 100" fill="none">
+                                    <path d="M20 20 L80 20 L90 40 L10 40 Z" fill="#4B5563"/>
+                                    <rect x="20" y="40" width="60" height="10" fill="#e5e7eb" id="lamp2-bulb" class="transition-colors duration-300"/>
+                                    <path d="M45 0 L55 0 L55 20 L45 20 Z" fill="#374151"/>
+                                    <g id="lamp2-rays" opacity="0" class="transition-opacity duration-300">
+                                        <line x1="30" y1="60" x2="20" y2="120" stroke="#FBBF24" stroke-width="3" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="8" to="0" dur="0.5s" repeatCount="indefinite"/></line>
+                                        <line x1="50" y1="60" x2="50" y2="120" stroke="#FBBF24" stroke-width="3" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="8" to="0" dur="0.5s" repeatCount="indefinite"/></line>
+                                        <line x1="70" y1="60" x2="80" y2="120" stroke="#FBBF24" stroke-width="3" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" from="8" to="0" dur="0.5s" repeatCount="indefinite"/></line>
+                                    </g>
+                                </svg>
+                                
+                                <div class="absolute bottom-4 flex justify-between w-full px-16">
+                                    <!-- Cup 1 (No Glass) -->
+                                    <div class="relative flex flex-col items-center">
+                                        <div class="text-sm font-bold text-gray-600 mb-1">유리관 없음</div>
+                                        <svg class="w-20 h-24" viewBox="0 0 100 100" fill="none">
+                                            <path d="M20 10 L80 10 L70 90 L30 90 Z" fill="#9CA3AF"/>
+                                            <ellipse cx="50" cy="10" rx="30" ry="8" fill="#D1D5DB"/>
+                                            <ellipse cx="50" cy="90" rx="20" ry="5" fill="#6B7280"/>
+                                            <text x="50" y="60" text-anchor="middle" fill="white" font-size="16" font-weight="bold" id="temp2a-text">20.0℃</text>
+                                        </svg>
+                                    </div>
+                                    <!-- Cup 2 (With Glass) -->
+                                    <div class="relative flex flex-col items-center">
+                                        <div class="text-sm font-bold text-gray-600 mb-1">유리관 있음</div>
+                                        <div class="relative">
+                                            <!-- Glass cover -->
+                                            <div class="absolute -inset-4 bg-blue-100/40 border-2 border-blue-300/50 rounded-t-3xl rounded-b-lg backdrop-blur-[1px] z-10 flex items-end justify-center pb-2">
+                                                <div class="w-full h-2 bg-blue-400/20 rounded-full mx-2"></div>
+                                            </div>
+                                            <svg class="w-20 h-24 relative z-0" viewBox="0 0 100 100" fill="none">
+                                                <path d="M20 10 L80 10 L70 90 L30 90 Z" fill="#9CA3AF"/>
+                                                <ellipse cx="50" cy="10" rx="30" ry="8" fill="#D1D5DB"/>
+                                                <ellipse cx="50" cy="90" rx="20" ry="5" fill="#6B7280"/>
+                                                <text x="50" y="60" text-anchor="middle" fill="white" font-size="16" font-weight="bold" id="temp2b-text">20.0℃</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Graph -->
+                            <div class="h-48 w-full relative mt-2 bg-white/50 rounded-lg p-2 border border-gray-200">
+                                <canvas id="chart2" class="w-full h-full"></canvas>
+                                <!-- Legend -->
+                                <div class="absolute top-2 left-4 flex gap-4 text-xs font-bold">
+                                    <div class="flex items-center gap-1"><span class="w-3 h-1 bg-gray-500"></span>유리관 없음</div>
+                                    <div class="flex items-center gap-1"><span class="w-3 h-1 bg-red-500"></span>유리관 있음</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 Visual (Canvas Particles) -->
+                        <div id="vis-s3" class="hidden absolute inset-0 w-full h-full bg-gray-900 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="particle-canvas" class="w-full h-full absolute inset-0"></canvas>
+                            <!-- Controls Over Canvas -->
+                            <div class="absolute top-4 right-4 flex gap-2">
+                                <button id="btn-toggle-atmos" onclick="toggleAtmosphere()" class="bg-white/20 hover:bg-white/30 text-white border border-white/40 px-4 py-2 rounded-lg backdrop-blur text-sm font-bold transition-all flex items-center gap-2">
+                                    <span id="atmos-status-icon">⚪</span> 대기 켜기
+                                </button>
+                            </div>
+                            <!-- Legend -->
+                            <div class="absolute bottom-4 left-4 bg-black/50 text-white/90 p-3 rounded-lg backdrop-blur text-xs flex flex-col gap-2">
+                                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> 태양 복사 에너지</div>
+                                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span> 지표 방출 에너지</div>
+                                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-400"></span> 대기 방출/재복사 에너지</div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4 Visual (Summary) -->
+                        <div id="vis-s4" class="hidden absolute inset-0 p-4 overflow-y-auto">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b-2 border-green-200">탐구 과정 요약</h3>
+                            <div id="summary-content" class="flex flex-col gap-4">
+                                <!-- JS will inject Q/A summaries here -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Right Panel (Q&A - 40%) -->
+                <div class="flex-[4] flex flex-col gap-4" id="qa-panel">
+                    <!-- Top: Question (40%) -->
+                    <div class="flex-[4] glass-panel p-6 flex flex-col relative">
+                        <div class="inline-block bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full text-xs w-max mb-3 shadow-sm border border-green-200">탐구 질문</div>
+                        <h2 id="question-text" class="text-xl font-extrabold text-gray-800 leading-snug break-keep flex-1">
+                            질문 내용이 여기에 표시됩니다.
+                        </h2>
+                    </div>
+
+                    <!-- Bottom: Answer/Hints (60%) -->
+                    <div class="flex-[6] glass-panel p-6 flex flex-col relative transition-all duration-300">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="inline-block bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full text-xs border border-blue-200">나의 답변</div>
+                            <button id="btn-hint" onclick="useHint()" class="text-sm font-bold text-gray-500 hover:text-blue-500 flex items-center gap-1 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
+                                💡 힌트 보기 (<span id="hint-count">0</span>/3)
+                            </button>
+                        </div>
+                        
+                        <!-- Dynamic Input Area -->
+                        <div id="input-container" class="flex-1 flex flex-col relative">
+                            <!-- Injected by JS (textarea or buttons) -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stage 5: Student Info -->
+            <section id="stage-5" class="absolute inset-0 flex flex-col items-center justify-center p-8 hidden z-30 bg-green-50">
+                <div class="glass-panel p-10 w-full max-w-md fade-in">
+                    <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">보고서 작성자 정보</h2>
+                    <div class="flex flex-col gap-5">
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">학년</label>
+                                <input type="number" id="inp-grade" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green-500 bg-white shadow-inner" placeholder="예: 2">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">반</label>
+                                <input type="number" id="inp-class" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green-500 bg-white shadow-inner" placeholder="예: 3">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">번호</label>
+                                <input type="number" id="inp-num" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green-500 bg-white shadow-inner" placeholder="예: 15">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-600 mb-1">이름</label>
+                            <input type="text" id="inp-name" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-green-500 bg-white shadow-inner" placeholder="홍길동">
+                        </div>
+                    </div>
+                    <button onclick="submitStudentInfo()" class="mt-8 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-95">결과 보고서 확인하기</button>
+                </div>
+            </section>
+
+            <!-- Stage 6: Dashboard & Download -->
+            <section id="stage-6" class="absolute inset-0 p-8 hidden z-40 bg-gray-100 overflow-y-auto">
+                <div class="max-w-4xl mx-auto flex flex-col items-center">
+                    
+                    <!-- Top Controls -->
+                    <div class="w-full flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-extrabold text-gray-800">탐구 결과 확인</h2>
+                        <button id="btn-download" onclick="downloadReport()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            이미지로 저장
+                        </button>
+                    </div>
+
+                    <!-- Warning Message -->
+                    <div id="data-warning" class="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6 hidden font-bold text-center shadow-sm">
+                        ⚠️ 실험 데이터가 부족하거나 오답이 있어 보고서를 저장할 수 없습니다. 이전 단계로 돌아가 다시 진행해주세요.
+                    </div>
+
+                    <!-- The Report Card (This element is cloned for dom-to-image) -->
+                    <div id="report-card" class="w-full bg-white shadow-xl border border-gray-200 rounded-2xl p-8 shrink-0 relative">
+                        <div class="absolute inset-0 bg-opacity-30 bg-repeat z-0 pointer-events-none opacity-5" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%2322c55e\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+                        <div class="relative z-10 flex flex-col gap-6">
+                            
+                            <!-- Header Info -->
+                            <div class="flex justify-between items-end border-b-2 border-green-500 pb-4">
+                                <div>
+                                    <h1 class="text-3xl font-black text-gray-900 mb-2 whitespace-nowrap shrink-0">온실효과 탐구 보고서</h1>
+                                    <div class="text-gray-500 font-medium whitespace-nowrap shrink-0">가상 실험 시뮬레이션 결과</div>
+                                </div>
+                                <div class="text-right whitespace-nowrap shrink-0">
+                                    <div class="text-xl font-bold text-gray-800" id="report-student-info">2학년 3반 15번 홍길동</div>
+                                </div>
+                            </div>
+
+                            <!-- Content Grid -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <!-- Stage 1 Info -->
+                                <div class="border border-gray-200 rounded-xl p-4 bg-gray-50 flex flex-col">
+                                    <div class="font-bold text-sm text-green-600 mb-2 whitespace-nowrap shrink-0">[실험 1] 복사 평형</div>
+                                    <div class="h-32 bg-white border border-gray-200 rounded-lg mb-3 relative flex justify-center items-center">
+                                        <img id="report-chart1" class="max-h-full max-w-full" src="" alt="Chart 1">
+                                    </div>
+                                    <div class="text-sm font-bold text-gray-700 mb-1">Q. 온도가 일정해지는 이유는?</div>
+                                    <div class="flex items-start gap-2 bg-white p-2 border border-gray-200 rounded">
+                                        <span id="mark-s1" class="text-lg">✅</span>
+                                        <div id="ans-s1" class="text-sm text-gray-600 flex-1 break-words">답변...</div>
+                                    </div>
+                                </div>
+
+                                <!-- Stage 2 Info -->
+                                <div class="border border-gray-200 rounded-xl p-4 bg-gray-50 flex flex-col">
+                                    <div class="font-bold text-sm text-green-600 mb-2 whitespace-nowrap shrink-0">[실험 2] 온실 효과</div>
+                                    <div class="h-32 bg-white border border-gray-200 rounded-lg mb-3 relative flex justify-center items-center">
+                                        <img id="report-chart2" class="max-h-full max-w-full" src="" alt="Chart 2">
+                                    </div>
+                                    <div class="text-sm font-bold text-gray-700 mb-1">Q. 유리관 컵의 온도가 높은 이유는?</div>
+                                    <div class="flex items-start gap-2 bg-white p-2 border border-gray-200 rounded">
+                                        <span id="mark-s2" class="text-lg">✅</span>
+                                        <div id="ans-s2" class="text-sm text-gray-600 flex-1 break-words">답변...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stage 3 Info -->
+                            <div class="border border-gray-200 rounded-xl p-4 bg-gray-50 flex flex-col">
+                                <div class="font-bold text-sm text-green-600 mb-2 whitespace-nowrap shrink-0">[실험 3] 대기의 역할</div>
+                                <div class="text-sm font-bold text-gray-700 mb-1">Q. 지구와 달의 에너지 흐름의 가장 큰 차이는?</div>
+                                <div class="flex items-start gap-2 bg-white p-2 border border-gray-200 rounded">
+                                    <span id="mark-s3" class="text-lg">✅</span>
+                                    <div id="ans-s3" class="text-sm text-gray-600 flex-1 break-words">답변...</div>
+                                </div>
+                            </div>
+
+                            <!-- Stage 4 Info -->
+                            <div class="border border-gray-200 rounded-xl p-4 bg-green-50 flex flex-col shadow-inner">
+                                <div class="font-bold text-sm text-green-700 mb-2 whitespace-nowrap shrink-0">[결론] 지구의 온난화와 복사 평형 종합</div>
+                                <div class="bg-white p-3 border border-green-200 rounded text-sm text-gray-800 leading-relaxed break-words whitespace-pre-wrap min-h-[4rem]" id="ans-s4">종합 서술 내용...</div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- Spacer for scrolling -->
+                    <div class="h-20"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer Controls (Shown only in Stages 1-4) -->
+        <footer id="control-footer" class="h-20 shrink-0 bg-white/80 backdrop-blur border-t border-gray-200 flex items-center justify-between px-8 z-10 hidden relative">
+            <div class="flex items-center gap-4">
+                <button id="btn-prev" onclick="prevStage()" class="glass-btn px-4 py-2 font-bold text-gray-700 rounded-lg flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> 이전
+                </button>
+            </div>
+            
+            <!-- Experiment Controls -->
+            <div id="exp-controls" class="flex items-center gap-4 bg-gray-100/50 p-2 rounded-xl border border-gray-200">
+                <button id="btn-play" onclick="togglePlay()" class="glass-btn w-12 h-12 flex items-center justify-center rounded-full text-green-600">
+                    <!-- Play Icon -->
+                    <svg id="icon-play" class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <!-- Pause Icon (hidden) -->
+                    <svg id="icon-pause" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <div class="w-px h-8 bg-gray-300"></div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-gray-500 mr-1">배속</span>
+                    <button class="speed-btn glass-btn px-3 py-1 text-sm font-bold text-gray-700 rounded-md" data-speed="0.5">0.5x</button>
+                    <button class="speed-btn glass-btn px-3 py-1 text-sm font-bold text-gray-700 rounded-md active-speed" data-speed="1">1x</button>
+                    <button class="speed-btn glass-btn px-3 py-1 text-sm font-bold text-gray-700 rounded-md" data-speed="2">2x</button>
+                    <button class="speed-btn glass-btn px-3 py-1 text-sm font-bold text-gray-700 rounded-md" data-speed="5">5x</button>
+                </div>
+                <div class="w-px h-8 bg-gray-300"></div>
+                <div class="text-sm font-mono font-bold text-gray-600 w-24 text-center">
+                    <span id="time-display">00:00</span>s
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button id="btn-next" onclick="nextStage()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 font-bold rounded-lg flex items-center gap-2 shadow-md transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    다음 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </footer>
+
+    </div>
+</div>
+
+<script>
+    // --- State Management ---
+    const state = {
+        stage: 0,
+        speed: 1,
+        isRunning: false,
+        time: 0,
+        isAtmosOn: false,
+        
+        // Physics variables
+        temp1: 20.0,
+        temp2a: 20.0,
+        temp2b: 20.0,
+        
+        // Data recording
+        data1: [], // {t, temp}
+        data2: [], // {t, t2a, t2b}
+        dataSufficient: [false, false, false], // Check if simulation ran enough
+        
+        // Input state
+        answers: ["", "", "", "", ""], // 0-dummy, 1,2,3,4
+        hintsLevel: [0, 0, 0, 0, 0],
+        student: { grade: "", class: "", num: "", name: "" },
+        
+        // Validation logic
+        keywords: [
+            [], // S0
+            ["평형", "일정"], // S1
+            ["온실", "대기", "보온", "가두"], // S2
+            ["방출", "재복사", "흡수"] // S3
+        ]
+    };
+
+    // Content definitions
+    const stagesContent = [
+        { title: "인트로", q: "" },
+        { title: "실험 1: 복사 평형", q: "전등을 계속 켜두어도 알루미늄 컵의 온도가 한없이 올라가지 않고 일정해지는 이유는 무엇일까요?" },
+        { title: "실험 2: 온실 효과", q: "열원이 같음에도 불구하고 유리관을 씌운 컵의 온도가 더 높게 올라가는 이유는 무엇일까요?" },
+        { title: "실험 3: 지구와 달의 에너지", q: "대기가 있는 지구와 대기가 없는 달의 에너지 흐름에서 가장 큰 차이는 무엇인가요?" },
+        { title: "최종 정리", q: "위의 1~3단계 탐구 결과를 바탕으로, 지구가 달보다 높은 평균 온도를 유지하며 생명체가 살 수 있는 환경이 되는 이유를 '복사 평형'과 '온실 효과' 개념을 포함하여 서술해 보세요." }
+    ];
+
+    // Hint definitions
+    const hintsContent = [
+        [], // s0
+        [ // S1
+            { type: "textarea", placeholder: "여기에 답변을 자유롭게 작성해 보세요." },
+            { type: "textarea", value: "컵이 흡수하는 에너지와 ____하는 에너지가 같아지기 때문입니다." },
+            { type: "fill", text: "컵이 흡수하는 에너지와 <input data-idx='0' class='border-b-2 border-gray-400 w-20 text-center bg-transparent focus:border-green-500 font-bold'>하는 에너지가 같아지는 복사 <input data-idx='1' class='border-b-2 border-gray-400 w-20 text-center bg-transparent focus:border-green-500 font-bold'>에 도달하기 때문입니다." },
+            { type: "mcq", options: ["1. 전등의 열이 식어서", "2. 흡수와 방출 에너지가 같은 복사 평형에 도달해서", "3. 컵의 온도가 너무 높아서", "4. 공기가 차가워서"] }
+        ],
+        [ // S2
+            { type: "textarea", placeholder: "여기에 답변을 자유롭게 작성해 보세요." },
+            { type: "textarea", value: "유리관이 열이 빠져나가는 것을 막는 ____ 효과를 일으키기 때문입니다." },
+            { type: "fill", text: "유리관이 지구의 대기처럼 작용하여 열을 가두는 <input data-idx='0' class='border-b-2 border-gray-400 w-20 text-center bg-transparent focus:border-green-500 font-bold'> 효과를 일으키기 때문입니다." },
+            { type: "mcq", options: ["1. 오존층 효과", "2. 온실 효과", "3. 열섬 효과", "4. 산란 효과"] }
+        ],
+        [ // S3
+            { type: "textarea", placeholder: "여기에 답변을 자유롭게 작성해 보세요." },
+            { type: "textarea", value: "대기가 지표에서 방출하는 에너지를 흡수했다가 지표로 ____하기 때문입니다." },
+            { type: "fill", text: "대기가 지표의 에너지를 흡수하여 지표로 <input data-idx='0' class='border-b-2 border-gray-400 w-24 text-center bg-transparent focus:border-green-500 font-bold'>하여 우주로 빠져나가는 에너지를 <input data-idx='1' class='border-b-2 border-gray-400 w-20 text-center bg-transparent focus:border-green-500 font-bold'> 지연시키기 때문입니다." },
+            { type: "mcq", options: ["1. 대기가 태양빛을 모두 반사해서", "2. 대기가 에너지를 지표로 재복사하여 보온해서", "3. 달이 지구보다 태양에 더 가까워서", "4. 지구의 자전 속도가 더 빨라서"] }
+        ],
+        [ // S4 (No structured hints, just free text)
+            { type: "textarea", placeholder: "지구가 달보다 높은 평균 온도를 유지하는 이유를 '복사 평형'과 '온실 효과'를 사용하여 서술하세요." }
+        ]
+    ];
+
+    // --- DOM Elements ---
+    const scaler = document.getElementById('scaler');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    // Canvas contexts
+    let ctx1, ctx2, pCtx;
+    let particles = [];
+    let animFrame;
+    let lastTime = performance.now();
+
+    // Resize logic
+    function handleResize() {
+        const ww = window.innerWidth;
+        const wh = window.innerHeight;
+        const scaleX = ww / 1200;
+        const scaleY = wh / 800;
+        const scale = Math.min(scaleX, scaleY) * 0.98; // 98% to leave a tiny border
+        scaler.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    function startApp() {
+        // Request fullscreen
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch((e)=>console.log(e));
+        }
+        setStage(1);
+    }
+
+    function setStage(newStage) {
+        // Save answer before changing
+        saveAnswer();
+        
+        state.stage = newStage;
+        
+        // Reset simulation states when entering stages 1-3
+        if(newStage >= 1 && newStage <= 3) {
+            state.isRunning = false;
+            updatePlayPauseUI();
+        }
+
+        // Hide all stages
+        document.getElementById('stage-0').classList.add('hidden');
+        document.getElementById('main-layout').classList.add('hidden');
+        document.getElementById('stage-5').classList.add('hidden');
+        document.getElementById('stage-6').classList.add('hidden');
+        document.getElementById('control-footer').classList.add('hidden');
+
+        // Show appropriate layouts
+        if (newStage >= 1 && newStage <= 4) {
+            document.getElementById('main-layout').classList.remove('hidden');
+            document.getElementById('control-footer').classList.remove('hidden');
+            updateExperimentPanel();
+            updateQAPanel();
+            
+            // Show/Hide specific controls
+            if (newStage === 4) {
+                document.getElementById('exp-controls').classList.add('hidden');
+                document.getElementById('left-panel').classList.replace('flex-[6]', 'flex-[5]');
+                document.getElementById('qa-panel').classList.replace('flex-[4]', 'flex-[5]');
+                buildStage4Summary();
+            } else {
+                document.getElementById('exp-controls').classList.remove('hidden');
+                document.getElementById('left-panel').classList.replace('flex-[5]', 'flex-[6]');
+                document.getElementById('qa-panel').classList.replace('flex-[5]', 'flex-[4]');
+            }
+
+        } else if (newStage === 5) {
+            document.getElementById('stage-5').classList.remove('hidden');
+        } else if (newStage === 6) {
+            document.getElementById('stage-6').classList.remove('hidden');
+            buildReport();
+        }
+
+        // Update Header
+        const stagesText = ["준비 단계", "1단계: 복사 평형", "2단계: 온실 효과", "3단계: 대기의 역할", "4단계: 결과 종합", "5단계: 정보 입력", "6단계: 보고서"];
+        progressText.innerText = stagesText[newStage];
+        progressBar.style.width = `${(newStage / 6) * 100}%`;
+    }
+
+    function prevStage() { if(state.stage > 1) setStage(state.stage - 1); }
+    function nextStage() { 
+        if(state.stage < 6) {
+            if (state.stage === 4) {
+                // Ensure text is not empty
+                const ans = document.querySelector('#input-container textarea');
+                if(!ans || ans.value.trim().length < 10) {
+                    // Flash red
+                    ans.classList.add('border-red-500');
+                    setTimeout(()=>ans.classList.remove('border-red-500'), 500);
+                    return;
+                }
+            }
+            setStage(state.stage + 1); 
+        }
+    }
+
+    function saveAnswer() {
+        if (state.stage < 1 || state.stage > 4) return;
+        const container = document.getElementById('input-container');
+        const hintLvl = state.hintsLevel[state.stage];
+        const content = hintsContent[state.stage];
+        
+        if (!content) return; // Stage 4 fallback handled via direct dom check
+        
+        let hintDef = content[hintLvl];
+        if (state.stage === 4) hintDef = content[0];
+
+        if (hintDef.type === 'textarea') {
+            const ta = container.querySelector('textarea');
+            if(ta) state.answers[state.stage] = ta.value;
+        } else if (hintDef.type === 'fill') {
+            const inputs = container.querySelectorAll('input');
+            let txt = hintDef.text;
+            inputs.forEach((inp, i) => {
+                txt = txt.replace(`<input data-idx='${i}' class='border-b-2 border-gray-400 w-20 text-center bg-transparent focus:border-green-500 font-bold'>`, `[${inp.value}]`);
+                txt = txt.replace(`<input data-idx='${i}' class='border-b-2 border-gray-400 w-24 text-center bg-transparent focus:border-green-500 font-bold'>`, `[${inp.value}]`); // for size variations
+            });
+            // remove html tags
+            txt = txt.replace(/<[^>]*>?/gm, '');
+            state.answers[state.stage] = txt;
+        } else if (hintDef.type === 'mcq') {
+            // saved on click
+        }
+    }
+
+    function updateQAPanel() {
+        document.getElementById('question-text').innerText = stagesContent[state.stage].q;
+        
+        const hintBtn = document.getElementById('btn-hint');
+        if (state.stage === 4) {
+            hintBtn.classList.add('hidden');
+        } else {
+            hintBtn.classList.remove('hidden');
+            document.getElementById('hint-count').innerText = state.hintsLevel[state.stage];
+            if (state.hintsLevel[state.stage] >= 3) hintBtn.disabled = true;
+            else hintBtn.disabled = false;
+        }
+
+        renderHintUI();
+    }
+
+    function useHint() {
+        if (state.hintsLevel[state.stage] < 3) {
+            state.hintsLevel[state.stage]++;
+            renderHintUI();
+            document.getElementById('hint-count').innerText = state.hintsLevel[state.stage];
+            if (state.hintsLevel[state.stage] >= 3) document.getElementById('btn-hint').disabled = true;
+        }
+    }
+
+    function renderHintUI() {
+        const container = document.getElementById('input-container');
+        container.innerHTML = '';
+        
+        const hintLvl = state.hintsLevel[state.stage];
+        let hintDef;
+        if(state.stage === 4) hintDef = hintsContent[4][0];
+        else hintDef = hintsContent[state.stage][hintLvl];
+
+        if (hintDef.type === 'textarea') {
+            const ta = document.createElement('textarea');
+            ta.className = "w-full h-full flex-1 resize-none bg-white/60 border border-gray-300 rounded-xl p-4 text-gray-800 leading-relaxed font-medium shadow-inner";
+            ta.placeholder = hintDef.placeholder || "";
+            ta.value = state.answers[state.stage] || hintDef.value || "";
+            // if level > 0 and transitioning from previous, we overwrite with the hint template if answer was empty
+            if (hintLvl > 0 && !state.answers[state.stage]) ta.value = hintDef.value;
+            ta.oninput = () => state.answers[state.stage] = ta.value;
+            container.appendChild(ta);
+        } 
+        else if (hintDef.type === 'fill') {
+            const wrapper = document.createElement('div');
+            wrapper.className = "w-full h-full flex-1 bg-white/60 border border-gray-300 rounded-xl p-6 text-gray-800 leading-loose font-medium shadow-inner flex items-center justify-center text-center text-lg";
+            wrapper.innerHTML = `<p>${hintDef.text}</p>`;
+            
+            // Re-populate if possible
+            const inputs = wrapper.querySelectorAll('input');
+            inputs.forEach(inp => {
+                inp.oninput = () => saveAnswer();
+            });
+            container.appendChild(wrapper);
+        }
+        else if (hintDef.type === 'mcq') {
+            const wrapper = document.createElement('div');
+            wrapper.className = "w-full h-full flex-1 flex flex-col gap-3 justify-center";
+            hintDef.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-white hover:bg-green-50 border border-gray-200 p-4 rounded-xl font-bold text-gray-700 shadow-sm transition-all hover:border-green-400";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    // unselect others
+                    wrapper.querySelectorAll('button').forEach(b => {
+                        b.classList.remove('bg-green-100', 'border-green-500', 'text-green-800');
+                    });
+                    btn.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                    state.answers[state.stage] = opt;
+                };
+                // Pre-select if matches
+                if(state.answers[state.stage] === opt) btn.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                wrapper.appendChild(btn);
+            });
+            container.appendChild(wrapper);
+        }
+    }
+
+    function updateExperimentPanel() {
+        document.getElementById('vis-s1').classList.add('hidden');
+        document.getElementById('vis-s2').classList.add('hidden');
+        document.getElementById('vis-s3').classList.add('hidden');
+        document.getElementById('vis-s4').classList.add('hidden');
+        
+        document.getElementById('experiment-title').innerText = stagesContent[state.stage].title;
+
+        if (state.stage === 1) {
+            document.getElementById('vis-s1').classList.remove('hidden');
+            initChart1();
+        } else if (state.stage === 2) {
+            document.getElementById('vis-s2').classList.remove('hidden');
+            initChart2();
+        } else if (state.stage === 3) {
+            document.getElementById('vis-s3').classList.remove('hidden');
+            initCanvas();
+        } else if (state.stage === 4) {
+            document.getElementById('vis-s4').classList.remove('hidden');
+        }
+    }
+
+    // Simulation Loop
+    function simulationLoop(timestamp) {
+        const delta = (timestamp - lastTime) / 1000; // seconds
+        lastTime = timestamp;
+
+        if (state.isRunning && state.stage >= 1 && state.stage <= 3) {
+            state.time += delta * state.speed;
+            const simDt = delta * state.speed * 2; // speed up logic slightly
+
+            if (state.stage === 1) {
+                // Newton's law of cooling modified
+                // Heating constant 1.0, cooling rate 0.05
+                // T_eq = 20 + (1.0 / 0.05) = 40
+                state.temp1 += (1.0 - 0.05 * (state.temp1 - 20)) * simDt;
+                document.getElementById('temp1-text').innerText = state.temp1.toFixed(1) + '℃';
+                
+                // Save data every ~0.5s of sim time
+                if (state.data1.length === 0 || state.time - state.data1[state.data1.length-1].t >= 0.5) {
+                    state.data1.push({t: state.time, temp: state.temp1});
+                    if(state.data1.length > 50) state.dataSufficient[0] = true;
+                    drawChart1();
+                }
+            } 
+            else if (state.stage === 2) {
+                // Cup 1 (no glass) -> eq ~40
+                state.temp2a += (1.0 - 0.05 * (state.temp2a - 20)) * simDt;
+                // Cup 2 (glass) -> smaller cooling rate 0.025 -> eq ~60
+                state.temp2b += (1.0 - 0.025 * (state.temp2b - 20)) * simDt;
+                
+                document.getElementById('temp2a-text').innerText = state.temp2a.toFixed(1) + '℃';
+                document.getElementById('temp2b-text').innerText = state.temp2b.toFixed(1) + '℃';
+
+                if (state.data2.length === 0 || state.time - state.data2[state.data2.length-1].t >= 0.5) {
+                    state.data2.push({t: state.time, t2a: state.temp2a, t2b: state.temp2b});
+                    if(state.data2.length > 50) state.dataSufficient[1] = true;
+                    drawChart2();
+                }
+            }
+
+            document.getElementById('time-display').innerText = state.time.toFixed(1);
+        }
+
+        // Particle animation runs regardless of 'isRunning' to keep it alive, but spawning depends on it
+        if (state.stage === 3) {
+            updateParticles(delta);
+            drawParticles();
+            // Stage 3 sufficient logic (ran for 10 seconds total)
+            if(state.isRunning) {
+                if(state.time > 10) state.dataSufficient[2] = true;
+            }
+        }
+
+        animFrame = requestAnimationFrame(simulationLoop);
+    }
+
+    // Charting functionality (Custom Canvas 2D Charts)
+    function initChart1() {
+        const cvs = document.getElementById('chart1');
+        cvs.width = cvs.parentElement.clientWidth;
+        cvs.height = cvs.parentElement.clientHeight;
+        ctx1 = cvs.getContext('2d');
+        if(state.data1.length > 0) drawChart1(); // redraw if exists
+    }
+    
+    function drawChart1() {
+        if(!ctx1) return;
+        const cvs = ctx1.canvas;
+        ctx1.clearRect(0,0, cvs.width, cvs.height);
+        
+        // Grid
+        ctx1.strokeStyle = '#e5e7eb';
+        ctx1.lineWidth = 1;
+        for(let i=1; i<4; i++) {
+            const y = cvs.height * (i/4);
+            ctx1.beginPath(); ctx1.moveTo(0, y); ctx1.lineTo(cvs.width, y); ctx1.stroke();
+        }
+
+        if(state.data1.length === 0) return;
+
+        // Draw Line
+        const maxTime = Math.max(30, state.time);
+        const maxTemp = 50;
+        const minTemp = 15;
+        
+        ctx1.beginPath();
+        ctx1.strokeStyle = '#22c55e';
+        ctx1.lineWidth = 3;
+        
+        state.data1.forEach((pt, i) => {
+            const x = (pt.t / maxTime) * cvs.width;
+            const y = cvs.height - ((pt.temp - minTemp) / (maxTemp - minTemp)) * cvs.height;
+            if (i === 0) ctx1.moveTo(x, y);
+            else ctx1.lineTo(x, y);
+        });
+        ctx1.stroke();
+    }
+
+    function initChart2() {
+        const cvs = document.getElementById('chart2');
+        cvs.width = cvs.parentElement.clientWidth;
+        cvs.height = cvs.parentElement.clientHeight;
+        ctx2 = cvs.getContext('2d');
+        if(state.data2.length > 0) drawChart2();
+    }
+
+    function drawChart2() {
+        if(!ctx2) return;
+        const cvs = ctx2.canvas;
+        ctx2.clearRect(0,0, cvs.width, cvs.height);
+        
+        // Grid
+        ctx2.strokeStyle = '#e5e7eb';
+        ctx2.lineWidth = 1;
+        for(let i=1; i<4; i++) {
+            const y = cvs.height * (i/4);
+            ctx2.beginPath(); ctx2.moveTo(0, y); ctx2.lineTo(cvs.width, y); ctx2.stroke();
+        }
+
+        if(state.data2.length === 0) return;
+
+        const maxTime = Math.max(30, state.time);
+        const maxTemp = 80;
+        const minTemp = 15;
+
+        // Line A (No Glass)
+        ctx2.beginPath();
+        ctx2.strokeStyle = '#6b7280';
+        ctx2.lineWidth = 3;
+        state.data2.forEach((pt, i) => {
+            const x = (pt.t / maxTime) * cvs.width;
+            const y = cvs.height - ((pt.t2a - minTemp) / (maxTemp - minTemp)) * cvs.height;
+            if (i === 0) ctx2.moveTo(x, y);
+            else ctx2.lineTo(x, y);
+        });
+        ctx2.stroke();
+
+        // Line B (Glass)
+        ctx2.beginPath();
+        ctx2.strokeStyle = '#ef4444';
+        ctx2.lineWidth = 3;
+        state.data2.forEach((pt, i) => {
+            const x = (pt.t / maxTime) * cvs.width;
+            const y = cvs.height - ((pt.t2b - minTemp) / (maxTemp - minTemp)) * cvs.height;
+            if (i === 0) ctx2.moveTo(x, y);
+            else ctx2.lineTo(x, y);
+        });
+        ctx2.stroke();
+    }
+
+    function initCanvas() {
+        const cvs = document.getElementById('particle-canvas');
+        cvs.width = cvs.parentElement.clientWidth;
+        cvs.height = cvs.parentElement.clientHeight;
+        pCtx = cvs.getContext('2d');
+        particles = [];
+        state.isAtmosOn = false;
+        updateAtmosBtnUI();
+    }
+
+    function toggleAtmosphere() {
+        state.isAtmosOn = !state.isAtmosOn;
+        updateAtmosBtnUI();
+    }
+
+    function updateAtmosBtnUI() {
+        const btn = document.getElementById('btn-toggle-atmos');
+        const icon = document.getElementById('atmos-status-icon');
+        if(state.isAtmosOn) {
+            btn.classList.replace('bg-white/20', 'bg-blue-500/50');
+            btn.classList.replace('border-white/40', 'border-blue-400');
+            icon.innerText = '🔵';
+        } else {
+            btn.classList.replace('bg-blue-500/50', 'bg-white/20');
+            btn.classList.replace('border-blue-400', 'border-white/40');
+            icon.innerText = '⚪';
+        }
+    }
+
+    function updateParticles(dt) {
+        if (!pCtx) return;
+        const speedMultiplier = state.speed;
+
+        // Spawn solar particles if running
+        if (state.isRunning && Math.random() < 0.2 * state.speed) {
+            // Target Moon (x: 450, y: 120) or Earth (x: 450, y: 350)
+            const isEarth = Math.random() > 0.5;
+            const ty = isEarth ? 350 : 120;
+            particles.push({
+                type: 'solar', x: 50, y: ty + (Math.random()*40 - 20),
+                vx: 150, vy: 0, life: 5, target: isEarth ? 'earth' : 'moon'
+            });
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx * dt * speedMultiplier;
+            p.y += p.vy * dt * speedMultiplier;
+            p.life -= dt * speedMultiplier;
+
+            if (p.life <= 0) {
+                particles.splice(i, 1);
+                continue;
+            }
+
+            // Hit logic
+            if (p.type === 'solar' && p.x > 450) {
+                // Hit surface
+                particles.splice(i, 1);
+                
+                // Spawn surface emitted particle (Red)
+                const angle = Math.PI + (Math.random() * Math.PI - Math.PI/2); // Leftwards mostly
+                particles.push({
+                    type: 'surface', x: 450, y: p.y,
+                    vx: Math.cos(angle) * 80, vy: Math.sin(angle) * 80, 
+                    life: 4, origin: p.target
+                });
+                continue;
+            }
+
+            // Atmosphere interaction (Only Earth particles)
+            if (p.type === 'surface' && p.origin === 'earth' && state.isAtmosOn) {
+                const dist = Math.hypot(p.x - 450, p.y - 350);
+                if (dist > 60 && dist < 70) {
+                    // 80% chance to absorb
+                    if (Math.random() < 0.8) {
+                        particles.splice(i, 1);
+                        
+                        // Spawn re-radiation (Blue in) and emission (Blue out)
+                        const angleOut = Math.atan2(p.vy, p.vx);
+                        const angleIn = angleOut + Math.PI;
+                        
+                        particles.push({ type: 'atmos', x: p.x, y: p.y, vx: Math.cos(angleOut) * 80, vy: Math.sin(angleOut) * 80, life: 3 });
+                        particles.push({ type: 'atmos', x: p.x, y: p.y, vx: Math.cos(angleIn) * 80, vy: Math.sin(angleIn) * 80, life: 1 });
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    function drawParticles() {
+        if (!pCtx) return;
+        const cvs = pCtx.canvas;
+        pCtx.clearRect(0,0, cvs.width, cvs.height);
+
+        // Draw Sun
+        pCtx.beginPath(); pCtx.arc(0, cvs.height/2, 100, 0, Math.PI*2); 
+        pCtx.fillStyle = '#fde047'; pCtx.fill();
+        pCtx.shadowBlur = 50; pCtx.shadowColor = '#facc15'; pCtx.fill(); pCtx.shadowBlur = 0;
+
+        // Draw Moon
+        pCtx.beginPath(); pCtx.arc(450, 120, 30, 0, Math.PI*2);
+        pCtx.fillStyle = '#d1d5db'; pCtx.fill();
+        pCtx.fillStyle = '#fff'; pCtx.font = "14px Pretendard"; pCtx.fillText("달", 443, 80);
+
+        // Draw Earth
+        pCtx.beginPath(); pCtx.arc(450, 350, 40, 0, Math.PI*2);
+        pCtx.fillStyle = '#3b82f6'; pCtx.fill();
+        pCtx.fillStyle = '#fff'; pCtx.fillText("지구", 437, 290);
+
+        // Draw Atmosphere if ON
+        if(state.isAtmosOn) {
+            pCtx.beginPath(); pCtx.arc(450, 350, 65, 0, Math.PI*2);
+            pCtx.strokeStyle = 'rgba(147, 197, 253, 0.4)';
+            pCtx.lineWidth = 15;
+            pCtx.stroke();
+        }
+
+        // Draw Particles
+        particles.forEach(p => {
+            pCtx.beginPath();
+            pCtx.arc(p.x, p.y, 3, 0, Math.PI*2);
+            if (p.type === 'solar') pCtx.fillStyle = '#facc15';
+            else if (p.type === 'surface') pCtx.fillStyle = '#ef4444';
+            else if (p.type === 'atmos') pCtx.fillStyle = '#60a5fa';
+            pCtx.fill();
+        });
+    }
+
+    function togglePlay() {
+        state.isRunning = !state.isRunning;
+        updatePlayPauseUI();
+    }
+
+    function updatePlayPauseUI() {
+        const playIcon = document.getElementById('icon-play');
+        const pauseIcon = document.getElementById('icon-pause');
+        const statusText = document.getElementById('status-text');
+        const statusDot = document.getElementById('status-dot');
+        
+        if(state.isRunning) {
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+            statusText.innerText = '실험 중';
+            statusDot.classList.replace('bg-red-500', 'bg-green-500');
+            statusDot.classList.add('animate-pulse');
+            
+            // Visuals
+            if(state.stage===1) {
+                document.getElementById('lamp1-bulb').setAttribute('fill', '#fde047');
+                document.getElementById('lamp1-rays').setAttribute('opacity', '1');
+            }
+            if(state.stage===2) {
+                document.getElementById('lamp2-bulb').setAttribute('fill', '#fde047');
+                document.getElementById('lamp2-rays').setAttribute('opacity', '1');
+            }
+        } else {
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            statusText.innerText = '대기 중';
+            statusDot.classList.replace('bg-green-500', 'bg-red-500');
+            statusDot.classList.remove('animate-pulse');
+            
+            // Visuals
+            if(state.stage===1) {
+                document.getElementById('lamp1-bulb').setAttribute('fill', '#e5e7eb');
+                document.getElementById('lamp1-rays').setAttribute('opacity', '0');
+            }
+            if(state.stage===2) {
+                document.getElementById('lamp2-bulb').setAttribute('fill', '#e5e7eb');
+                document.getElementById('lamp2-rays').setAttribute('opacity', '0');
+            }
+        }
+    }
+
+    // Speed controls
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active-speed'));
+            e.target.classList.add('active-speed');
+            state.speed = parseFloat(e.target.dataset.speed);
+        });
+    });
+
+    function buildStage4Summary() {
+        const container = document.getElementById('summary-content');
+        container.innerHTML = '';
+        for(let i=1; i<=3; i++) {
+            const block = document.createElement('div');
+            block.className = "bg-white p-4 rounded-lg shadow-sm border border-gray-200";
+            block.innerHTML = `
+                <div class="text-xs font-bold text-green-600 mb-1">[실험 ${i}]</div>
+                <div class="text-sm font-bold text-gray-800 mb-2">Q. ${stagesContent[i].q}</div>
+                <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">A. ${state.answers[i] || '(답변 없음)'}</div>
+            `;
+            container.appendChild(block);
+        }
+    }
+
+    function submitStudentInfo() {
+        const g = document.getElementById('inp-grade').value.trim();
+        const c = document.getElementById('inp-class').value.trim();
+        const n = document.getElementById('inp-num').value.trim();
+        const name = document.getElementById('inp-name').value.trim();
+
+        if(!g || !c || !n || !name) {
+            alert('모든 정보를 입력해주세요.');
+            return;
+        }
+
+        state.student = { grade: g, class: c, num: n, name: name };
+        setStage(6);
+    }
+
+    function buildReport() {
+        // Update Info
+        document.getElementById('report-student-info').innerText = `${state.student.grade}학년 ${state.student.class}반 ${state.student.num}번 ${state.student.name}`;
+
+        // Validate Answers
+        let allCorrect = true;
+        
+        for(let i=1; i<=3; i++) {
+            const ansText = state.answers[i] || "";
+            document.getElementById(`ans-s${i}`).innerText = ansText;
+            
+            const mark = document.getElementById(`mark-s${i}`);
+            let isCorrect = false;
+            
+            // Check keywords
+            for(let kw of state.keywords[i]) {
+                if(ansText.includes(kw)) {
+                    isCorrect = true; break;
+                }
+            }
+
+            if(isCorrect) {
+                mark.innerText = '✅';
+            } else {
+                mark.innerText = '❌';
+                allCorrect = false;
+            }
+        }
+        
+        // Stage 4 ans
+        document.getElementById('ans-s4').innerText = state.answers[4] || "(작성된 내용이 없습니다)";
+        if(!state.answers[4] || state.answers[4].length < 10) allCorrect = false;
+
+        // Data Sufficiency check
+        let dataOk = state.dataSufficient.every(v => v);
+
+        // Update warnings & button
+        const warning = document.getElementById('data-warning');
+        const btn = document.getElementById('btn-download');
+        
+        if(allCorrect && dataOk) {
+            warning.classList.add('hidden');
+            btn.disabled = false;
+        } else {
+            warning.classList.remove('hidden');
+            let msg = [];
+            if(!dataOk) msg.push("실험 데이터 부족");
+            if(!allCorrect) msg.push("오답 존재 또는 내용 부족");
+            warning.innerText = `⚠️ 저장 불가: ${msg.join(', ')}. 이전 단계로 돌아가 보완해주세요.`;
+            btn.disabled = true;
+        }
+
+        // Draw static charts for report (using dataURL to guarantee cloneNode rendering)
+        if(ctx1) {
+            document.getElementById('report-chart1').src = ctx1.canvas.toDataURL();
+        }
+        if(ctx2) {
+            document.getElementById('report-chart2').src = ctx2.canvas.toDataURL();
+        }
+    }
+
+    async function downloadReport() {
+        const btn = document.getElementById('btn-download');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 저장 중...`;
+        btn.disabled = true;
+
+        try {
+            const target = document.getElementById('report-card');
+            
+            // 1. Clone the node
+            const clone = target.cloneNode(true);
+            
+            // 2. Force strictly required styles for flawless dom-to-image
+            clone.style.width = '896px'; // Force exact width (max-w-4xl)
+            clone.style.height = 'auto';
+            clone.style.position = 'absolute';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.transform = 'none'; // Critical to remove any parent scaling
+            clone.style.margin = '0';
+            clone.style.padding = '2rem'; // Equivalent to p-8
+
+            // 3. Append to body temporarily
+            document.body.appendChild(clone);
+
+            // 4. Capture
+            const dataUrl = await domtoimage.toPng(clone, { 
+                quality: 1.0,
+                bgcolor: '#ffffff',
+                width: 896,
+                height: clone.offsetHeight
+            });
+
+            // 5. Cleanup clone
+            document.body.removeChild(clone);
+
+            // 6. Trigger Download
+            const link = document.createElement('a');
+            link.download = `온실효과_탐구보고서_${state.student.name}.png`;
+            link.href = dataUrl;
+            link.click();
+
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    // Start Simulation Loop
+    animFrame = requestAnimationFrame(simulationLoop);
+
+</script>
+</body>
+</html>
